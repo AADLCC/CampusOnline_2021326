@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Acceso Admin - Plataforma Cursos</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+    <style type="text/css">
+        .login-panel {
+            width: 350px;
+            margin: 10vh auto 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+    </style>
+</h:head>
+<h:body>
+    <div class="login-panel ui-g-12">
+        <h:form id="loginForm" class="ui-fluid">
+            <p:growl id="growl" showDetail="true" showSummary="true" life="3000"/>
+
+            <div class="p-text-center">
+                <h2>Acceso de Administración</h2>
+            </div>
+
+            <div class="p-field">
+                <p:outputLabel for="username">Usuario</p:outputLabel>
+                <p:inputText id="username" value="#{loginController.username}" required="true"
+                             placeholder="admin"/>
+            </div>
+
+            <div class="p-field">
+                <p:outputLabel for="password">Contraseña</p:outputLabel>
+                <p:password id="password" value="#{loginController.password}" required="true"
+                            placeholder="password123"/>
+            </div>
+
+            <p:commandButton value="Iniciar Sesión"
+                             action="#{loginController.doLogin()}"
+                             update="growl loginForm"
+                             class="ui-button-success p-mt-3"/>
+        </h:form>
+    </div>
+</h:body>
+</html>

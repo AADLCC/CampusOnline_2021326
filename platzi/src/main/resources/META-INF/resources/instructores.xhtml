@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Gestión de Instructores</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+</h:head>
+<h:body>
+    <div class="card">
+        <h:form id="formulario-instructores">
+            <p:growl id="mensaje-emergente" showDetail="true" showSummary="true" life="4000"/>
+
+            <p:menubar>
+                <p:menuitem value="Nuevo Instructor" icon="pi pi-fw pi-user-plus"
+                            actionListener="#{instructorVistaController.prepararNuevoInstructor}"
+                            update=":formulario-modal:dialogo-instructor"
+                            oncomplete="PF('dialogoInstructor').show();"/>
+            </p:menubar>
+
+            <div class="card">
+                <p:dataTable value="#{instructorVistaController.instructores}" var="i" id="tabla-instructores"
+                             paginator="true" rows="10" paginatorPosition="bottom" styleClass="p-datatable-gridlines">
+                    <f:facet name="header">
+                        <h3>Listado de Instructores</h3>
+                    </f:facet>
+
+                    <p:column headerText="ID" sortBy="#{i.idInstructor}" style="width:5rem;">
+                        <h:outputText value="#{i.idInstructor}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Completo" sortBy="#{i.apellidoInstructor}">
+                        <h:outputText value="#{i.nombreInstructor} #{i.apellidoInstructor}"/>
+                    </p:column>
+
+                    <p:column headerText="Especialidad" sortBy="#{i.especialidad}" filterBy="#{i.especialidad}" filterMatchMode="contains">
+                        <h:outputText value="#{i.especialidad}"/>
+                    </p:column>
+
+                    <p:column headerText="Acciones" style="width:12rem; text-align:center;">
+                        <p:commandButton value="Editar" icon="pi pi-pencil"
+                                         update=":formulario-modal:dialogo-instructor"
+                                         process="@this"
+                                         oncomplete="PF('dialogoInstructor').show();"
+                                         class="ui-button-primary"
+                                         style="margin-right:.5rem">
+                            <f:setPropertyActionListener value="#{i}" target="#{instructorVistaController.seleccionarInstructor(i)}"/>
+                            <p:resetInput target=":formulario-modal:dialogo-instructor"/>
+                        </p:commandButton>
+
+                        <p:commandButton value="Eliminar" icon="pi pi-trash" class="ui-button-danger"
+                                         process="@this"
+                                         oncomplete="PF('confirmarEliminarInstructor').show()">
+                            <f:setPropertyActionListener value="#{i}" target="#{instructorVistaController.instructorSeleccionado}"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+        <h:form id="formulario-modal">
+
+            <p:dialog header="Detalles del Instructor" showEffect="fade" modal="true" widgetVar="dialogoInstructor" responsive="true">
+                <p:outputPanel id="dialogo-instructor" class="ui-fluid">
+
+                    <div class="p-field">
+                        <p:outputLabel for="nombre">Nombre</p:outputLabel>
+                        <p:inputText id="nombre" value="#{instructorVistaController.instructorSeleccionado.nombreInstructor}" required="true"/>
+                    </div>
+
+                    <div class="p-field">
+                        <p:outputLabel for="apellido">Apellido</p:outputLabel>
+                        <p:inputText id="apellido" value="#{instructorVistaController.instructorSeleccionado.apellidoInstructor}" required="true"/>
+                    </div>
+
+                    <div class="p-field">
+                        <p:outputLabel for="especialidad">Especialidad</p:outputLabel>
+                        <p:inputText id="especialidad" value="#{instructorVistaController.instructorSeleccionado.especialidad}" required="true"/>
+                    </div>
+
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Guardar" icon="pi pi-check"
+                                     actionListener="#{instructorVistaController.guardarInstructor}"
+                                     process="dialogo-instructor @this"
+                                     update=":formulario-instructores:tabla-instructores :formulario-instructores:mensaje-emergente"
+                                     oncomplete="if (!args.validationFailed) PF('dialogoInstructor').hide();"/>
+                    <p:commandButton value="Cancelar" icon="pi pi-times" styleClass="ui-button-secondary"
+                                     onclick="PF('dialogoInstructor').hide()" type="button"/>
+                </f:facet>
+            </p:dialog>
+
+            <p:confirmDialog widgetVar="confirmarEliminarInstructor" message="¿Desea eliminar a este instructor? Esta acción no se puede deshacer." header="Confirmar Eliminación" severity="warn">
+                <p:commandButton value="Sí, Eliminar" icon="pi pi-check" process="@this"
+                                 actionListener="#{instructorVistaController.eliminarInstructor}"
+                                 update=":formulario-instructores:tabla-instructores :formulario-instructores:mensaje-emergente"
+                                 oncomplete="PF('confirmarEliminarInstructor').hide()"
+                                 class="ui-button-danger"/>
+                <p:commandButton value="No, Cancelar" icon="pi pi-times" styleClass="ui-button-secondary" type="button"
+                                 onclick="PF('confirmarEliminarInstructor').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+    </div>
+</h:body>
+</html>
