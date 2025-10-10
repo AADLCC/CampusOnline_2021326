@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title>Gestión de Inscripciones</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+</h:head>
+<h:body>
+    <div class="card">
+        <h:form id="formulario-inscripciones">
+            <p:growl id="mensaje-emergente" showDetail="true" showSummary="true" life="4000"/>
+
+            <p:menubar>
+                <p:menuitem value="Nueva Inscripción" icon="pi pi-fw pi-plus"
+                            actionListener="#{inscripcionVistaController.prepararNuevaInscripcion}"
+                            update=":formulario-modal"
+                            oncomplete="PF('dialogoInscripcion').show();"/>
+            </p:menubar>
+
+            <div class="card">
+                <p:dataTable value="#{inscripcionVistaController.inscripciones}" var="i" id="tabla-inscripciones"
+                             paginator="true" rows="10" paginatorPosition="bottom" styleClass="p-datatable-gridlines"
+                             rowKey="#{i.idAlumno()}-#{i.idCurso()}">
+
+                    <f:facet name="header"><h3>Registro de Inscripciones</h3></f:facet>
+
+                    <p:column headerText="ID Alumno" sortBy="#{i.idAlumno()}" style="width:6rem; text-align:center;">
+                        <h:outputText value="#{i.idAlumno()}"/>
+                    </p:column>
+
+                    <p:column headerText="ID Curso" sortBy="#{i.idCurso()}" style="width:6rem; text-align:center;">
+                        <h:outputText value="#{i.idCurso()}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha" sortBy="#{i.fechaInscripcion()}" style="width:10rem; text-align:center;">
+                        <h:outputText value="#{inscripcionVistaController.getFechaInscripcionFormateada(i)}"/>
+                    </p:column>
+                    <p:column headerText="Estado" sortBy="#{i.estado()}" style="width:8rem; text-align:center;">
+                        <h:outputText value="#{i.estado()}"/>
+                    </p:column>
+
+                    <p:column headerText="Acciones" style="width:12rem; text-align:center;">
+                        <p:commandButton value="Editar" icon="pi pi-pencil"
+                                         update=":formulario-modal"
+                                         process="@this"
+                                         oncomplete="PF('dialogoInscripcion').show();"
+                                         styleClass="ui-button-primary">
+                            <f:setPropertyActionListener value="#{i}" target="#{inscripcionVistaController.inscripcionSeleccionada}"/>
+                            <p:resetInput target=":formulario-modal"/>
+                        </p:commandButton>
+
+                        <p:commandButton value="Eliminar" icon="pi pi-trash" styleClass="ui-button-danger"
+                                         process="@this"
+                                         oncomplete="PF('confirmarEliminarInscripcion').show()">
+                            <f:setPropertyActionListener value="#{i}" target="#{inscripcionVistaController.inscripcionSeleccionada}"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+        <h:form id="formulario-modal">
+            <p:dialog header="Detalles de la Inscripción" showEffect="fade" modal="true"
+                      widgetVar="dialogoInscripcion" responsive="true">
+                <p:outputPanel id="dialogo-inscripcion" class="ui-fluid">
+
+                    <p:fieldset legend="Selección">
+                        <div class="p-field">
+                            <p:outputLabel for="alumno">Alumno</p:outputLabel>
+                            <p:selectOneMenu id="alumno" value="#{inscripcionVistaController.idAlumnoSeleccionado}" required="true"
+                                             disabled="#{inscripcionVistaController.inscripcionSeleccionada != null and inscripcionVistaController.inscripcionSeleccionada.idAlumno() != null}">
+                                <f:selectItem itemLabel="-- Seleccione un Alumno --" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{inscripcionVistaController.alumnosDisponibles}" var="a"
+                                               itemLabel="#{a.nombre()} #{a.apellido()} (ID: #{a.idAlumno()})"
+                                               itemValue="#{a.idAlumno()}"/>
+                            </p:selectOneMenu>
+                        </div>
+
+                        <div class="p-field">
+                            <p:outputLabel for="curso">Curso</p:outputLabel>
+                            <p:selectOneMenu id="curso" value="#{inscripcionVistaController.idCursoSeleccionado}" required="true"
+                                             disabled="#{inscripcionVistaController.inscripcionSeleccionada != null and inscripcionVistaController.inscripcionSeleccionada.idCurso() != null}">
+                                <f:selectItem itemLabel="-- Seleccione un Curso --" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{inscripcionVistaController.cursosDisponibles}" var="c"
+                                               itemLabel="#{c.nombreCurso()} (ID: #{c.idCurso()})"
+                                               itemValue="#{c.idCurso()}"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </p:fieldset>
+
+                    <p:fieldset legend="Detalles de Registro" style="margin-top: 1rem;">
+                        <div class="p-field">
+                            <p:outputLabel for="fecha">Fecha de Inscripción</p:outputLabel>
+                            <p:calendar id="fecha" value="#{inscripcionVistaController.fechaSeleccionada}" required="true"
+                                        pattern="dd/MM/yyyy HH:mm" showOn="button"/>
+                        </div>
+
+                        <div class="p-field">
+                            <p:outputLabel for="estado">Estado</p:outputLabel>
+                            <p:selectOneMenu id="estado" value="#{inscripcionVistaController.estadoSeleccionado}" required="true">
+                                <f:selectItem itemLabel="-- Seleccione un Estado --" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{inscripcionVistaController.estados}"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </p:fieldset>
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Guardar" icon="pi pi-check"
+                                     actionListener="#{inscripcionVistaController.guardarInscripcion}"
+                                     process="@this dialogo-inscripcion"
+                                     update=":formulario-inscripciones:tabla-inscripciones :formulario-inscripciones:mensaje-emergente"
+                                     oncomplete="if (!args.validationFailed) PF('dialogoInscripcion').hide();"/>
+                    <p:commandButton value="Cancelar" icon="pi pi-times" styleClass="ui-button-secondary"
+                                     onclick="PF('dialogoInscripcion').hide()" type="button"/>
+                </f:facet>
+            </p:dialog>
+
+            <p:confirmDialog widgetVar="confirmarEliminarInscripcion" message="¿Desea eliminar esta inscripción permanentemente?" header="Confirmar Eliminación" severity="warn">
+                <p:commandButton value="Sí, Eliminar" icon="pi pi-check" process="@this"
+                                 actionListener="#{inscripcionVistaController.eliminarInscripcion}"
+                                 update=":formulario-inscripciones:tabla-inscripciones :formulario-inscripciones:mensaje-emergente"
+                                 oncomplete="PF('confirmarEliminarInscripcion').hide()"
+                                 styleClass="ui-button-danger"/>
+                <p:commandButton value="No, Cancelar" icon="pi pi-times" styleClass="ui-button-secondary" type="button"
+                                 onclick="PF('confirmarEliminarInscripcion').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+    </div>
+</h:body>
+</html>
